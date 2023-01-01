@@ -1,0 +1,26 @@
+{
+  "name": "@edugis/lineunion",
+  "version": "0.1.0",
+  "description": "Union two lineStrings",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node test.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/edugisrepo/lineunion.git"
+  },
+  "author": "Anne Blankert, EduGIS",
+  "license": "ISC",
+  "keywords": [
+    "lineString",
+    "union",
+    "dissolve",
+    "st_union"
+  ],
+  "bugs": {
+    "url": "https://github.com/edugis-repo/lineunion/issues"
+  }
+}
