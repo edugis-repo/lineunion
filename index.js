@@ -46,7 +46,7 @@ const clone = (items) => items.map(item => Array.isArray(item) ? clone(item) : i
 // lines are unionable => intersect but not cross
 // if both ends of line1 are not on (near) line2, line1 is the union (line1 fully overlaps line2)
 // if both ends of line2 are not on (near) line1, line2 is the union (line2 fully overlaps line1)
-export const lineUnion = (line1, line2, tolerance = 0.0001) => {
+const lineUnionCoordinates = (line1, line2, tolerance = 0.0001) => {
     const union = [];
     let startDistance, endDistance = Number.MAX_VALUE;
  
@@ -82,6 +82,26 @@ export const lineUnion = (line1, line2, tolerance = 0.0001) => {
         }
     }
     return union;
+}
+
+export const lineUnion = (line1, line2, tolerance = 0.0001) => {
+    if (line1.type && line1.type==='Feature' && line1.geometry && line1.geometry.type && line1.geometry.type=== 'LineString') {
+        if (line2.type && line2.type==='Feature' && line2.geometry && line2.geometry.type && line2.geometry.type=== 'LineString') {
+            const union = lineUnionCoordinates(line1.geometry.coordinates, line2.geometry.coordinates);
+            return {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": union,
+                },
+                "properties": {...line1.properties}
+            }
+        } else {
+            throw "lineUnion: parameter 'line2' is not a valid GeoJSON feature";
+        }
+    } else {
+        throw "lineUnion: parameter 'line1' is not a valid GeoJSON feature" 
+    }
 }
 
 export default lineUnion;

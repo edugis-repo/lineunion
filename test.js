@@ -57,17 +57,9 @@ function main() {
     let data = JSON.parse(fs.readFileSync('lines.json'));
     const lines = [];
     for (const feature of data.features) {
-        lines.push(feature.geometry.coordinates);
+        lines.push(feature);
     }
-    const union = lineUnion(lines[0], lines[1]);
-    const result = {
-        "type": "Feature",
-        "geometry": {
-            "type": "LineString",
-            "coordinates": union,
-        },
-        "properties": {}
-    }
+    const result = lineUnion(lines[0], lines[1]);
     fs.writeFileSync('result.json', JSON.stringify(result));
     console.log(result);
 }
