@@ -18,7 +18,11 @@ const linestring1 = {
     type:"Feature", 
     geometry: {
         type: "LineString",
-        coordinates: []
+        coordinates: [
+            [4.5112985372543335,51.93054627470241],
+            [4.5360177755355835,51.937320111808276],
+            [4.537353515625,51.936757869326385]
+        ]
     },
     properties: {}
 };
@@ -26,7 +30,12 @@ const linestring2 = {
     type:"Feature", 
     geometry: {
         type: "LineString",
-        coordinates: []
+        coordinates: [
+            [4.515380859375,51.93166429288598],
+            [4.5360177755355835,51.937320111808276],
+            [4.549922347068787,51.93149890733616],
+            [4.564771056175232,51.93779635875168]
+        ]
     },
     properties: {}
 };
