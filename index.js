@@ -128,7 +128,7 @@ export const lineUnion = (line1, line2, tolerance = 0.0001) => {
             i = 0;
             while (i < line1Coordinates.length && line1Coordinates.length > 1) {
                 for (let j = i + 1; j < line1Coordinates.length; j++) {
-                    const union = line1Coordinates(line1Coordinates[i], line1Coordinates[j]);
+                    const union = lineUnionCoordinates(line1Coordinates[i], line1Coordinates[j]);
                     if (union.length) {
                         line1Coordinates[i] = union;
                         line1Coordinates[j] = [];
