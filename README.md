@@ -1,9 +1,10 @@
 ### LineUnion
-Unions two linestrings into a single linestring (equivalent to sql function 'st_union' or polygon-only turf.union).
+Unions (alias merges, alias dissolves) two GeoJSON (Multi-)Linestrings into a single linestring (equivalent to sql function 'st_union' or polygon-only turf.union).
 
-Line unions are troublesome because of floating point rounding errors while calculating if a given point is exactly on a given line segment.
+Line unions are troublesome because of floating point rounding errors while calculating if a given point is exactly on a given line segment (i.a. GDAL)
+This package uses point-to-line distance calculations to overcome that problem
 
-## requirements
+## prerequisites
 node
 npm
 
