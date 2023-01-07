@@ -62,6 +62,12 @@ function main() {
     const result = lineUnion(lines[0], lines[1]);
     fs.writeFileSync('result.json', JSON.stringify(result));
     console.log(result);
+    data = JSON.parse(fs.readFileSync('renderedfeatures.json'));
+    const multilines = data.features.filter(feature=>feature.properties.id === 1 || feature.properties.id === 4);
+    const multilineResult = lineUnion(multilines[0], multilines[1]);
+    fs.writeFileSync('multilineresult.json', JSON.stringify(multilineResult));
+    console.log(result);
+    
 }
 
 

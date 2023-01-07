@@ -42,65 +42,122 @@ function distanceToSegment(p, s) {
 // deep clone
 const clone = (items) => items.map(item => Array.isArray(item) ? clone(item) : item);
 
+const pointDistanceToSegments = (point, line) => {
+    let minDistance = Number.MAX_VALUE;
+    for (let i = 0;  i < line.length - 1; i++) {
+        const segment = [line[i],line[i+1]];
+        // distance between line1 starting point and line2 segment
+        let dist  = distanceToSegment(point, segment);
+        if (dist < minDistance) {
+            minDistance = dist;
+        }
+    }
+    return minDistance;
+}
+
 // union assumptions:
-// lines are unionable => intersect but not cross
-// if both ends of line1 are not on (near) line2, line1 is the union (line1 fully overlaps line2)
-// if both ends of line2 are not on (near) line1, line2 is the union (line2 fully overlaps line1)
+// lines are only unionable if at least one line-ending is on the other line
 const lineUnionCoordinates = (line1, line2, tolerance = 0.0001) => {
     const union = [];
-    let startDistance, endDistance = Number.MAX_VALUE;
- 
-    for (let point2 = 0; point2 < line2.length - 1; point2++) {
-        const segment = [line2[point2],line2[point2+1]];
-        let dist  = distanceToSegment(line1[0], segment);
-        if (dist < startDistance) {
-            startDistance = dist;
-        }
-        dist = distanceToSegment(line1[line1.length-1], segment);
-        if (dist < endDistance) {
-            endDistance = dist;
-        }
-        if (startDistance < tolerance && endDistance < tolerance) {
+
+    // check if line1 endings are somewhere on line2
+    let startDistance = pointDistanceToSegments(line1[0], line2);
+    let endDistance = pointDistanceToSegments(line1[line1.length-1], line2);
+
+    if (startDistance <= tolerance && endDistance <= tolerance) {
+        // both line1 end-points are on line2, so return line2
+        return clone(line2);
+    }
+    if (startDistance > tolerance && endDistance > tolerance) {
+        // both line1 end-points are not on line2
+        startDistance = pointDistanceToSegments(line2[0], line1);
+        endDistance = pointDistanceToSegments(line2[line2.length-1], line1);
+        if (startDistance <= tolerance && endDistance <= tolerance) {
+            // both line2 end-points are on line1, so return line1
             return clone(line1);
         }
         if (startDistance > tolerance && endDistance > tolerance) {
-            return clone(line2);
+            // no line endpoints touch other line, so return empty union
+            return union;
         }
-        if (startDistance < tolerance) {
-            line1 = line1.reverse();
-        }
-        for (let point1 = 0; point1 < line1.length; point1++) {
-            if (distanceToSegment(line1[point1], [line2[0],line2[1]]) > tolerance) {
-                if (distanceToSegment(line1[point1], [line2[line2.length-2],line2[line2.length-1]]) > tolerance) {
-                    union.push(line1[point1]);
-                } else {
-                    return clone(union.concat(line2.reverse().slice(1)));
-                }
+        // one of line2 end-points is on line 1, swap line1 and line2
+        const temp = line1;
+        line1 = line2;
+        line2 = temp;
+    }
+    // one of line1 end-points is on line2
+    if (startDistance <= tolerance) {
+        line1 = line1.reverse();
+    }
+    for (let point1 = 0; point1 < line1.length; point1++) {
+        if (distanceToSegment(line1[point1], [line2[0],line2[1]]) > tolerance) {
+            if (distanceToSegment(line1[point1], [line2[line2.length-2],line2[line2.length-1]]) > tolerance) {
+                union.push(line1[point1]);
             } else {
-                return clone(union.concat(line2.slice(1)));
+                return clone(union.concat(line2.reverse().slice(1)));
             }
+        } else {
+            return clone(union.concat(line2.slice(1)));
         }
     }
     return union;
 }
 
 export const lineUnion = (line1, line2, tolerance = 0.0001) => {
-    if (line1.type && line1.type==='Feature' && line1.geometry && line1.geometry.type && line1.geometry.type=== 'LineString') {
-        if (line2.type && line2.type==='Feature' && line2.geometry && line2.geometry.type && line2.geometry.type=== 'LineString') {
-            const union = lineUnionCoordinates(line1.geometry.coordinates, line2.geometry.coordinates);
+    if (line1.type && line1.type==='Feature' && line1.geometry && line1.geometry.type && (line1.geometry.type=== 'LineString' || line1.geometry.type==='MultiLineString')) {
+        if (line2.type && line2.type==='Feature' && line2.geometry && line2.geometry.type && (line2.geometry.type=== 'LineString' || line2.geometry.type==='MultiLineString')) {
+            let line1Coordinates = line1.geometry.type === 'LineString' ? [line1.geometry.coordinates] : line1.geometry.coordinates;
+            let line2Coordinates = line2.geometry.type === 'LineString' ? [line2.geometry.coordinates] : line2.geometry.coordinates;
+            let i = 0;
+            while (i < line1Coordinates.length && line2Coordinates.length) {
+                for (let j = 0; j < line2Coordinates.length; j++) {
+                    const union = lineUnionCoordinates(line1Coordinates[i], line2Coordinates[j]);
+                    if (union.length) {
+                        // parts are unioned
+                        line1Coordinates[i] = union;
+                        line2Coordinates[j] = [];
+                    }
+                }
+                if (line2Coordinates.some(coords=>coords.length === 0)) {
+                    line2Coordinates = line2Coordinates.filter(coords=>coords.length !== 0);
+                } else {
+                    i++;
+                }
+            }
+            // internally union line1 coordinates
+            i = 0;
+            while (i < line1Coordinates.length && line1Coordinates.length > 1) {
+                for (let j = i + 1; j < line1Coordinates.length; j++) {
+                    const union = line1Coordinates(line1Coordinates[i], line1Coordinates[j]);
+                    if (union.length) {
+                        line1Coordinates[i] = union;
+                        line1Coordinates[j] = [];
+                    }
+                }
+                if (line1Coordinates.some(coords=>coords.length === 0)) {
+                    line1Coordinates = line1Coordinates.filter(coords=>coords.length !== 0);
+                } else {
+                    i++;
+                }
+            }
+            let result = line1Coordinates.concat(line2Coordinates);
+            let geometryType = result.length === 1 ? "LineString" : "MultiLineString";
+            if (result.length === 1) {
+                result = result[0]
+            }
             return {
                 "type": "Feature",
                 "geometry": {
-                    "type": "LineString",
-                    "coordinates": union,
+                    "type": geometryType,
+                    "coordinates": result,
                 },
                 "properties": {...line1.properties}
             }
         } else {
-            throw "lineUnion: parameter 'line2' is not a valid GeoJSON feature";
+            throw "lineUnion: parameter 'line2' is not a valid GeoJSON (Multi-)LineString feature";
         }
     } else {
-        throw "lineUnion: parameter 'line1' is not a valid GeoJSON feature" 
+        throw "lineUnion: parameter 'line1' is not a valid GeoJSON (Multi-)LineString feature" 
     }
 }
 

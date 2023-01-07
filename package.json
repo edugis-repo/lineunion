@@ -1,7 +1,7 @@
 {
   "name": "@edugis/lineunion",
-  "version": "0.2.0",
-  "description": "Union two lineStrings",
+  "version": "0.3.0",
+  "description": "Union two GeoJSON (Multi-)LineStrings",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,8 @@
   "author": "Anne Blankert, EduGIS",
   "license": "ISC",
   "keywords": [
-    "lineString",
+    "LineString",
+    "MultiLineString",
     "union",
     "dissolve",
     "st_union"
